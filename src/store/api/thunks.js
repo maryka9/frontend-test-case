@@ -40,7 +40,7 @@ export const fetchUser = createAsyncThunk(
 
 export const checkoutCart = createAsyncThunk(
     "cart/checkout",
-    async (cartItems, { dispatch }) => {
+    async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return true;
     }
