@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {fetchProducts} from "../api/thunks";
+import { createSlice } from "@reduxjs/toolkit";
+import {fetchProducts} from "@store/api/thunks";
 import {RequestStatus} from "@constants";
 
 const productSlice = createSlice({
@@ -19,7 +19,7 @@ const productSlice = createSlice({
                 state.products = action.payload;
                 state.status = RequestStatus.Fulfilled;
             })
-            .addCase(fetchProducts.rejected, (state, action) => {
+            .addCase(fetchProducts.rejected, (state) => {
                 state.status = RequestStatus.Rejected;
                 state.error = "Не удалось загрузить товары";
             });

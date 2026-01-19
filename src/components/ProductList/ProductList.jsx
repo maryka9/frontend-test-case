@@ -1,9 +1,15 @@
 import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {ProductCard} from "../ProductCard/ProductCard";
-import {fetchProducts} from "../../store/api/thunks";
-import {selectProducts, selectProductStatus} from "../../store/products";
+
+import {fetchProducts} from "@store/api/thunks";
+import {selectProductError, selectProducts, selectProductStatus} from "@store/products";
+
+import {useDebouncedValue} from "@hooks/useDebouncedSearch";
 import {RequestStatus} from "@constants";
+
+import {ProductCard} from "../ProductCard/ProductCard";
+
+import "./ProductList.css";
 
 const SORT_CATEGORIES = [
     { id: "all", name: "Все категории" },
@@ -13,48 +19,60 @@ const SORT_CATEGORIES = [
 ];
 
 const SORT_OPTIONS = [
-    {id: ""}
+    {id: 1, value: "name", name: "По названию"},
+    {id: 2, value: "name", name: "По цене"}
 ]
 
-export function ProductList() {
+export const ProductList = () => {
     const dispatch = useDispatch();
     const products = useSelector(selectProducts);
     const dataStatus = useSelector(selectProductStatus);
+    const dataError = useSelector(selectProductError);
+    const isIdle = dataStatus === RequestStatus.Idle;
     const isLoading = dataStatus === RequestStatus.Pending;
+    const isError = dataStatus === RequestStatus.Rejected;
 
-    const [searchTerm, setSearchTerm] = useState("")
-    const [selectedCategory, setSelectedCategory] = useState("all")
-    const [sortBy, setSortBy] = useState("name")
-    const [showFilters, setShowFilters] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("all");
+    const [sortBy, setSortBy] = useState("name");
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchProducts());
+        if (isIdle) {
+            dispatch(fetchProducts());
+        }
     }, [dispatch]);
 
+    const debouncedSearch = useDebouncedValue(searchTerm, 300);
+
     const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
-        return matchesSearch && matchesCategory
+        const matchesSearch = product.name.toLowerCase().includes(debouncedSearch.toLowerCase());
+        const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+        return matchesSearch && matchesCategory;
     }).sort((a, b) => {
-        if (sortBy === "name") return a.name.localeCompare(b.name)
-        if (sortBy === "price") return a.price - b.price
-        return 0
+        if (sortBy === "name") return a.name.localeCompare(b.name);
+        if (sortBy === "price") return a.price - b.price;
+        return 0;
     })
 
     const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value)
+        setSearchTerm(e.target.value);
     }
 
     const handleCategoryChange = (e) => {
-        setSelectedCategory(e.target.value)
+        setSelectedCategory(e.target.value);
     }
 
     const handleSortChange = (e) => {
-        setSortBy(e.target.value)
+        setSortBy(e.target.value);
     }
 
     if (isLoading) {
         return <div className="loading">Загрузка товаров...</div>
+    }
+
+    if (isError) {
+        return <div className="error">{dataError}</div>
     }
 
     return (
@@ -70,16 +88,19 @@ export function ProductList() {
                 </div>
 
                 <div className="filter-controls">
-                    <select value={selectedCategory} onChange={handleCategoryChange}>
-                        {SORT_CATEGORIES.map(({id, name}) => (<option key={id} value={id}>{name}</option>))}
-                    </select>
+                    {showFilters && (
+                        <>
+                            <select value={selectedCategory} onChange={handleCategoryChange}>
+                                {SORT_CATEGORIES.map(({id, name}) => (<option key={id} value={id}>{name}</option>))}
+                            </select>
 
-                    <select value={sortBy} onChange={handleSortChange}>
-                        <option value="name">По названию</option>
-                        <option value="price">По цене</option>
-                    </select>
+                            <select value={sortBy} onChange={handleSortChange}>
+                                {SORT_OPTIONS.map(({id, name}) => (<option key={id} value={id}>{name}</option>))}
+                            </select>
+                        </>
+                    )}
 
-                    <button onClick={() => setShowFilters(!showFilters)}>
+                    <button onClick={() => setShowFilters(prev => !prev)}>
                         {showFilters ? "Скрыть фильтры" : "Показать фильтры"}
                     </button>
                 </div>

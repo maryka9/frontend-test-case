@@ -1,7 +1,11 @@
 import {useDispatch} from "react-redux";
-import {addToCart} from "../../store/cart";
+import {addToCart} from "@store/cart";
 
-export const ProductCard = ({product}) => {
+import PropTypes from "prop-types";
+
+import "./ProductCard.css";
+
+export const ProductCard = ({ product }) => {
     const dispatch = useDispatch();
 
     return (
@@ -13,4 +17,14 @@ export const ProductCard = ({product}) => {
             <button onClick={() => {dispatch(addToCart(product))}}>Добавить в корзину</button>
         </div>
     )
+}
+
+ProductCard.propTypes = {
+    product: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        image: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+        price: PropTypes.string.isRequired,
+    })
 }

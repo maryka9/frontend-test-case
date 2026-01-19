@@ -25,7 +25,7 @@ export const fetchUser = createAsyncThunk(
         try {
             const response = await fetch("/user.json");
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             if (!response.ok) {
                 return rejectWithValue("error");
@@ -35,5 +35,13 @@ export const fetchUser = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(error.message || "Что-то пошло не так");
         }
+    }
+);
+
+export const checkoutCart = createAsyncThunk(
+    "cart/checkout",
+    async (cartItems, { dispatch }) => {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return true;
     }
 );

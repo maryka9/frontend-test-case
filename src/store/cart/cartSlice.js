@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import {checkoutCart} from "@store/api/thunks";
 
 const initialState = {
     items: [],
@@ -30,13 +31,15 @@ export const cartSlice = createSlice({
             if (item) {
                 item.quantity = quantity;
             }
-        },
-        clearCart: (state) => {
-            state.items = [];
         }
-    }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(checkoutCart.fulfilled, (state) => {
+            state.items = [];
+        });
+    },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity } = cartSlice.actions;
 
 export default cartSlice.reducer;

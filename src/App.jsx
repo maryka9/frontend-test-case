@@ -2,7 +2,7 @@ import {Cart} from "./components/Cart/Cart";
 import {Header} from "./components/Header/Header";
 import {ProductList} from "./components/ProductList/ProductList";
 
-import "./App.css"
+import "./styles/global.css"
 
 function App() {
   return (

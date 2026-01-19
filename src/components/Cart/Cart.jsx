@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import {
-    clearCart,
-    removeFromCart,
-    selectCartCount,
-    selectCartItems,
-    selectTotalPrice,
-    updateQuantity
-} from "../../store/cart";
+import { selectCartCount, selectCartItems, selectTotalPrice} from "@store/cart";
+import {checkoutCart} from "@store/api/thunks";
 
-export function Cart() {
+import {CartItem} from "../CartItem/CartItem";
+
+import "./Cart.css";
+
+export const Cart= () => {
     const dispatch = useDispatch();
     const cartItems = useSelector(selectCartItems);
     const cartCount = useSelector(selectCartCount);
@@ -19,31 +17,22 @@ export function Cart() {
     const [isOpen, setIsOpen] = useState(false);
     const [showCheckout, setShowCheckout] = useState(false);
 
-    const handleRemoveItem = (id) => {
-        dispatch(removeFromCart(id));
-    };
-
-    const handleUpdateQuantity = (id, quantity) => {
-        if (quantity <= 0) {
-            dispatch(removeFromCart(id));
-        } else {
-            dispatch(updateQuantity({ id, quantity }));
-        }
-    };
-
-    const handleCheckout = () => {
-        setShowCheckout(true);
-        setTimeout(() => {
-            alert('Заказ оформлен!');
-            dispatch(clearCart());
-            setShowCheckout(false);
+    const handleCheckout = async () => {
+       setShowCheckout(true);
+        try {
+            await dispatch(checkoutCart(cartItems)).unwrap();
+            alert("Заказ оформлен!");
             setIsOpen(false);
-        }, 1000);
+        } catch (err) {
+            console.error("Ошибка при оформлении заказа", err);
+        } finally {
+            setShowCheckout(false);
+        }
     };
 
     return (
         <div className="cart">
-            <button className="cart-toggle" onClick={() => setIsOpen(!isOpen)}>
+            <button className="cart-toggle" onClick={() => setIsOpen(prev => !prev)}>
                 Корзина ({cartCount})
             </button>
 
@@ -58,27 +47,7 @@ export function Cart() {
                         {cartItems.length === 0 ? (
                             <p>Корзина пуста</p>
                         ) : (
-                            cartItems.map(item => (
-                                <div key={item.id} className="cart-item">
-                                    <img src={item.image} alt={item.name} />
-                                    <div className="item-details">
-                                        <h4>{item.name}</h4>
-                                        <p>${item.price}</p>
-                                        <div className="quantity-controls">
-                                            <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>
-                                                –
-                                            </button>
-                                            <span>{item.quantity}</span>
-                                            <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>
-                                                +
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button className="remove-btn" onClick={() => handleRemoveItem(item.id)}>
-                                        Удалить
-                                    </button>
-                                </div>
-                            ))
+                            cartItems.map(item => <CartItem key={item.id} item={item} /> )
                         )}
                     </div>
 
@@ -89,7 +58,7 @@ export function Cart() {
                             onClick={handleCheckout}
                             disabled={cartItems.length === 0 || showCheckout}
                         >
-                            {showCheckout ? 'Оформляем...' : 'Оформить заказ'}
+                            {showCheckout ? "Оформляем..." : "Оформить заказ"}
                         </button>
                     </div>
                 </div>
